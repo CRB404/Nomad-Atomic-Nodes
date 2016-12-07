@@ -1,37 +1,122 @@
 const Nomad = require('nomad-stream')
 const moment = require('moment')
-const nomad = new Nomad()
 const fetch = require('node-fetch')
+const Particle = require('particle-api-js')
 
-let instance = null  // the nomad instance
-const pollFrequency = 60 * 1000  // 60 seconds
-const url = 'https://newsapi.org/v1/articles?source=reddit-r-all&sortBy=top&apiKey=827666c95cdc4d1486c8c225448decae'
+const credentials = require('./particle-login')
 
-function getMessage() {
-  return fetch(url)
-    .then(res => res.json())
-    .then(json => JSON.stringify(json))
-    .catch(err => {
-      console.log('getMessage error: ', err)
-      return err
-    })
+const particle = new Particle()
+const nomad = new Nomad()
+
+//Particle Device Setup
+//IDEO Münich
+const deviceID = '430026001447343432313031'
+
+let instance = null
+let lastPub = null
+let token
+
+const defaultPublishData = {
+  sensor: {
+    data: "",
+    time: "",
+  }
+}
+const timeBetween = 15 * 60 * 1000 //15 minutes
+const timeThreshold = 4 * 60 * 60 * 1000 // 4 minutes
+
+class DataMaintainer {
+  constructor(){
+    this.data = defaultPublishData
+  }
+  setValue(key, value){
+    let cleanedKey = this.cleanKey(key)
+    if(cleanedKey in this.data){
+      this.data[cleanedKey].data = value.data
+      this.data[cleanedKey].time = value.time
+    } else {
+      this.data[cleanedKey] = value
+    }
+  }
+  cleanKey(key){
+    let cleanedKey = key.replace(/\s+/, '\x01').split('\x01')[0]
+    cleanedKey = cleanedKey.toLowerCase()
+    return cleanedKey
+  }
+  getAll(){
+    return this.data
+  }
+  isAllFilled(){
+    return this.data["sensor"]["data"]
+  }
+  clear(){
+    this.data = defaultPublishData
+  }
+  toString(){
+    return JSON.stringify(this.data)
+  }
 }
 
-function startPoll(frequency) {
-  setInterval(() => {
-    getMessage()
-      .then((m) => {
-        console.log('fetched:', m)
-        return instance.publish(m)
-      })
-      .catch(console.log)
-  }, frequency)
+function getTime() {
+  return new moment()
 }
 
-nomad.prepareToPublish()
-  .then((node) => {
-    instance = node
-    return instance.publishRoot('hello')
+//init data manager
+let dataManager = new DataMaintainer()
+
+particle.login(credentials)
+  .then(res => {
+    token = res.body.access_token
+    console.log(`Got Token: ${token}`)
+    return nomad.prepareToPublish()
   })
-  .then(() => startPoll(pollFrequency))
-  .catch(console.log)
+  .then((n) => {
+    instance = n
+    return instance.publishRoot('hello this is a particle')
+  })
+  .then(() => {
+    //declaring last publish date
+    lastPub = getTime()
+    return particle.getEventStream({ deviceId: deviceID, auth: token })
+  })
+  .then(s => {
+    stream = s
+    stream.on('event', data => {
+      console.log(data)
+      try{dataManager.setValue(data.name, {data: data.data, time: data.published_at})}
+      catch(err){
+        console.log("DataMaintainer failed with error of " + err)
+      }
+      // this determines frequency of transmission
+      let currentTime = getTime()
+      let timeSince = currentTime - lastPub
+      if (timeSince >= timeBetween){
+
+        console.log("timeSince >= timeBetween")
+
+        if (dataManager.isAllFilled){
+          // publish if everything is full
+          console.log("***************************************************************************************")
+          console.log(dataManager.getAll())
+          console.log("***************************************************************************************")
+
+          instance.publish(dataManager.toString())
+            .catch(err => console.log(`Error: ${JSON.stringify(err)}`))
+          dataManager.clear()
+          lastPub = currentTime
+        }
+      }
+      // if haven't receieved anything in the time frame
+      if (timeSince >= timeThreshold){
+        // publish what we got
+        instance.publish(dataManager.toString())
+          .catch(err => console.log(`Error: ${JSON.stringify(err)}`))
+        console.log("***************************************************************************************")
+        console.log(dataManager.getAll())
+        console.log("***************************************************************************************")
+        dataManager.clear()
+        lastPub = currentTime
+      }
+    })
+  })
+  .catch(err => console.log(`Error: ${JSON.stringify(err)}`))
