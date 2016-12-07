@@ -1,22 +1,22 @@
 {
-  "name": "exploratorium-sf-beacon-bay",
-  "nomadName": "exploratorium-sf-beacon-bay",
+  "name": "AIS node Bay Area",
+  "nomadName": "AIS-node-Bay-Area",
   "version": "1.0.0",
-  "description": "San Francisco Bay BEACON sensor (Bay Side)  at the Exploratorium. Sourced from http://erddap.exploratorium.edu:8080/erddap",
+  "description": "Node capturing AIS information for boats in the Bay Area. Sourced from...",
   "main": "sensor.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/IDEO-coLAB/nomad-sensor-hello.git"
+    "url": "git+https://github.com/CRB404/Nomad-Atomic-Nodes"
   },
   "author": "Eric Chan <echan@ideo.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/IDEO-coLAB/nomad-sensor-hello/issues"
+    "url": "https://github.com/CRB404/Nomad-Atomic-Nodes/issues"
   },
-  "homepage": "https://github.com/IDEO-coLAB/nomad-sensor-hello#readme",
+  "homepage": "https://github.com/CRB404/Nomad-Atomic-Nodes#readme",
   "dependencies": {
     "moment": "^2.16.0",
     "node-fetch": "^1.6.3",
