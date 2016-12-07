@@ -183,7 +183,10 @@ client.connect(2999, 'bitway.com', function() {
         if (decoded) {
             // console.log(TextDecoder.decode(str));
             if (instance) {
-              pack.push(decoded)
+
+              // pack.push(decoded)
+              console.log('fetched:', decoded)
+              instance.publish(JSON.stringify(decoded))
             }
         }
 
@@ -195,13 +198,13 @@ client.connect(2999, 'bitway.com', function() {
 
 var frequency = 60 * 10 //1 minute
 
-function startPoll(frequency) {
-  setInterval(() => {
-        console.log('fetched:', pack)
-        instance.publish(JSON.stringify(pack))
-        pack = []
-  }, frequency)
-}
+// function startPoll(frequency) {
+//   setInterval(() => {
+//         console.log('fetched:', decoded)
+//         instance.publish(JSON.stringify(decoded))
+//         pack = []
+//   }, frequency)
+// }
 
 nomad.prepareToPublish()
   .then((node) => {
