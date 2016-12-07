@@ -4,8 +4,8 @@ const nomad = new Nomad()
 const fetch = require('node-fetch')
 
 let instance = null  // the nomad instance
-const pollFrequency = 60 * 1000  // 60 seconds
-const url = 'https://newsapi.org/v1/articles?source=reddit-r-all&sortBy=top&apiKey=827666c95cdc4d1486c8c225448decae'
+const pollFrequency = 60 * 100000  // 1 hour
+const url = 'http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=5&alertlevel=yellow'
 
 function getMessage() {
   return fetch(url)
@@ -31,7 +31,7 @@ function startPoll(frequency) {
 nomad.prepareToPublish()
   .then((node) => {
     instance = node
-    return instance.publishRoot('hello')
+    return instance.publishRoot('Earthquake yellow alerts over the last 30 days')
   })
   .then(() => startPoll(pollFrequency))
   .catch(console.log)
