@@ -4,7 +4,7 @@ const nomad = new Nomad()
 const fetch = require('node-fetch')
 
 let instance = null  // the nomad instance
-const pollFrequency = 60 * 100000  // 1 hour
+const pollFrequency = 60 * 1000  // 1 minute
 const url = 'http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=5&alertlevel=yellow'
 
 function getMessage() {
