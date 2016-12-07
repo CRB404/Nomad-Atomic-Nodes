@@ -3,6 +3,7 @@ const moment = require('moment')
 const nomad = new Nomad()
 const fetch = require('node-fetch')
 
+
 let instance = null  // the nomad instance
 const pollFrequency = 60 * 1000  // 60 seconds
 const url = 'https://newsapi.org/v1/articles?source=reddit-r-all&sortBy=top&apiKey=827666c95cdc4d1486c8c225448decae'

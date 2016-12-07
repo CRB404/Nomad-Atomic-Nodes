@@ -42,3 +42,4 @@ particle-login.js
 # Directories #
 ######################
 node_modules/**
+exploais/node_modules/**
